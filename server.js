@@ -34,13 +34,14 @@ app.get("/", (req, res, next) => {
 });
 
 app.post("/signin", (req, res, next) => {
-  const isUser = database.users.some((user) => {
-    return req.body.email === user.email && bcrypt.compareSync(req.body.password, user.hash);
+  let found = false;
+  database.users.forEach((user) => {
+    if (req.body.email === user.email && bcrypt.compareSync(req.body.password, user.hash)) {
+      found = true;
+      return res.json(user);
+    }
   });
-
-  if (isUser) {
-    res.json("signed in");
-  } else {
+  if (!found) {
     res.status(400).json("access denied");
   }
 });
