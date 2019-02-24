@@ -5,8 +5,53 @@ const port = 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+const database = {
+  users: [
+    {
+      id: "123",
+      name: "John",
+      email: "john@gmail.com",
+      password: "password",
+      entries: 0,
+      joined: new Date()
+    },
+    {
+      id: "124",
+      name: "Sally",
+      email: "sally@gmail.com",
+      password: "password",
+      entries: 0,
+      joined: new Date()
+    }
+  ]
+};
+
 app.get("/", (req, res, next) => {
-  res.send("Hello world");
+  res.json(database.users);
+});
+
+app.post("/signin", (req, res, next) => {
+  const isUser = database.users.some((user) => {
+    return req.body.email === user.email && req.body.password === user.password;
+  });
+
+  if (isUser) {
+    res.json("signed in");
+  } else {
+    res.status(400).json("access denied");
+  }
+});
+
+app.post("/register", (req, res) => {
+  database.users.push({
+    id: "125",
+    name: req.body.name,
+    email: req.body.email,
+    password: req.body.password,
+    entries: 0,
+    joined: new Date()
+  });
+  res.json(database.users[database.users.length - 1]);
 });
 
 app.use((req, res, next) => {
