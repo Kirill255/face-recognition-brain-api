@@ -54,6 +54,33 @@ app.post("/register", (req, res) => {
   res.json(database.users[database.users.length - 1]);
 });
 
+app.get("/profile/:id", (req, res) => {
+  let found = false;
+  database.users.forEach((user) => {
+    if (req.params.id === user.id) {
+      found = true;
+      return res.json(user);
+    }
+  });
+  if (!found) {
+    res.status(400).json("no such user");
+  }
+});
+
+app.put("/image", (req, res) => {
+  let found = false;
+  database.users.forEach((user) => {
+    if (req.body.id === user.id) {
+      found = true;
+      user.entries++;
+      return res.json(user);
+    }
+  });
+  if (!found) {
+    res.status(400).json("no such user");
+  }
+});
+
 app.use((req, res, next) => {
   res.status(404).send("Sorry can't find that!");
 });
