@@ -1,3 +1,4 @@
+const bcrypt = require("bcrypt-nodejs");
 const express = require("express");
 const app = express();
 const port = 3000;
@@ -11,7 +12,7 @@ const database = {
       id: "123",
       name: "John",
       email: "john@gmail.com",
-      password: "password",
+      hash: "$2a$10$l.e5HD/7m0OKfrZz8KC0g.I0yczdD.prl5mMsGEKM8F5BWEHrxGIS", // "password"
       entries: 0,
       joined: new Date()
     },
@@ -19,7 +20,7 @@ const database = {
       id: "124",
       name: "Sally",
       email: "sally@gmail.com",
-      password: "password",
+      hash: "$2a$10$si2Ha9zDthrgOLotYR7VQeGb1kMgDsLbBqu6ZmOG.I2brvfm4zT0O", // "password1"
       entries: 0,
       joined: new Date()
     }
@@ -32,7 +33,7 @@ app.get("/", (req, res, next) => {
 
 app.post("/signin", (req, res, next) => {
   const isUser = database.users.some((user) => {
-    return req.body.email === user.email && req.body.password === user.password;
+    return req.body.email === user.email && bcrypt.compareSync(req.body.password, user.hash);
   });
 
   if (isUser) {
@@ -43,15 +44,20 @@ app.post("/signin", (req, res, next) => {
 });
 
 app.post("/register", (req, res) => {
-  database.users.push({
-    id: "125",
-    name: req.body.name,
-    email: req.body.email,
-    password: req.body.password,
-    entries: 0,
-    joined: new Date()
+  bcrypt.hash(req.body.password, null, null, (err, hash) => {
+    if (err) return console.log(err);
+    // console.log(hash);
+
+    database.users.push({
+      id: "125",
+      name: req.body.name,
+      email: req.body.email,
+      hash: hash,
+      entries: 0,
+      joined: new Date()
+    });
+    res.json(database.users[database.users.length - 1]);
   });
-  res.json(database.users[database.users.length - 1]);
 });
 
 app.get("/profile/:id", (req, res) => {
