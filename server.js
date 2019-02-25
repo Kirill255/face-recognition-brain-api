@@ -5,6 +5,11 @@ const app = express();
 const port = 3001;
 const knex = require("knex");
 
+const register = require("./controllers/register");
+const signin = require("./controllers/signin");
+const profile = require("./controllers/profile");
+const image = require("./controllers/image");
+
 const pgDB = knex({
   client: "pg",
   connection: {
@@ -26,96 +31,13 @@ app.get("/", (req, res, next) => {
     .then((users) => res.json(users));
 });
 
-app.post("/signin", (req, res, next) => {
-  pgDB
-    .select("email", "hash")
-    .from("login")
-    .where("email", "=", req.body.email)
-    .then((data) => {
-      const isValid = bcrypt.compareSync(req.body.password, data[0].hash);
-      if (isValid) {
-        return pgDB
-          .select("*")
-          .from("users")
-          .where("email", "=", req.body.email)
-          .then((user) => res.json(user[0]))
-          .catch(() => res.status(400).json("Unable to get user"));
-      } else {
-        res.status(400).json("Wrong credentials");
-      }
-    })
-    .catch(() => res.status(400).json("Wrong credentials"));
-});
+app.post("/signin", (req, res) => signin.handleSignin(req, res, pgDB, bcrypt));
 
-app.post("/register", (req, res) => {
-  bcrypt.hash(req.body.password, null, null, (err, hash) => {
-    if (err) return console.log(err);
-    // console.log(hash);
+app.post("/register", (req, res) => register.handleRegister(req, res, pgDB, bcrypt));
 
-    // вставляем email и hash в таблицу login, возвращаем email, дальше вставляем name, email, joined в таблицу users, на клиент отправляем возвращающийся объект юзера, дальше завершаем транзакцию .then(trx.commit) и .catch(trx.rollback)
-    pgDB
-      .transaction((trx) => {
-        trx
-          .insert({
-            email: req.body.email,
-            hash: hash
-          })
-          .into("login")
-          .returning("email")
-          .then((loginEmail) => {
-            return trx("users")
-              .returning("*")
-              .insert({
-                name: req.body.name,
-                email: loginEmail[0],
-                joined: new Date()
-              })
-              .then((response) => res.json(response[0]));
-          })
-          .then(trx.commit)
-          .catch(trx.rollback);
-      })
-      .catch(() => res.status(400).json("Unable to register."));
-  });
-});
+app.get("/profile/:id", (req, res) => profile.handleProfileGet(req, res, pgDB));
 
-app.get("/profile/:id", (req, res) => {
-  /*  pgDB
-    .select("*")
-    .from("users")
-    .where({ id: req.params.id })
-    .then((user) => {
-      // если юзера нет, то вернётся просто пустой массив и 200, тоесть нет ошибки, мы не сможем поймать это в catch
-      if (user.length) {
-        res.json(user[0]);
-      } else {
-        res.status(400).json("Not found.");
-      }
-    })
-    .catch(() => res.status(400).json("Error getting user.")); */
-
-  // так тоже работает
-  pgDB("users")
-    .where("id", req.params.id)
-    .then((user) => {
-      // если юзера нет, то вернётся просто пустой массив и 200, тоесть нет ошибки, мы не сможем поймать это в catch
-      if (user.length) {
-        res.json(user[0]);
-      } else {
-        res.status(400).json("Not found.");
-      }
-    })
-    .catch(() => res.status(400).json("Error getting user."));
-});
-
-app.put("/image", (req, res) => {
-  pgDB("users")
-    .where("id", "=", req.body.id)
-    .increment("entries", 1)
-    .returning("entries")
-    .then((entries) => res.json(entries[0]))
-    .catch(() => res.status(400).json("Unable to get entries."));
-});
+app.put("/image", (req, res) => image.handleImage(req, res, pgDB));
 
 app.use((req, res, next) => {
   res.status(404).send("Sorry can't find that!");
