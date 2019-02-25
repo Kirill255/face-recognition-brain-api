@@ -57,3 +57,5 @@ https://www.npmjs.com/package/sequelize
 [.insert()](https://knexjs.org/#Builder-insert)
 
 [.returning()](https://knexjs.org/#Builder-returning)
+
+[.where()](https://knexjs.org/#Builder-where)
