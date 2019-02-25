@@ -1,4 +1,4 @@
-const handleSignin = (req, res, pgDB, bcrypt) => {
+const handleSignin = (pgDB, bcrypt) => (req, res) => {
   pgDB
     .select("email", "hash")
     .from("login")

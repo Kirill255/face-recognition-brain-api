@@ -1,4 +1,4 @@
-const handleProfileGet = (req, res, pgDB) => {
+const handleProfileGet = (pgDB) => (req, res) => {
   pgDB("users")
     .where("id", req.params.id)
     .then((user) => {

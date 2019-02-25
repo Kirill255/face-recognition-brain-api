@@ -31,13 +31,19 @@ app.get("/", (req, res, next) => {
     .then((users) => res.json(users));
 });
 
-app.post("/signin", (req, res) => signin.handleSignin(req, res, pgDB, bcrypt));
+// когда мы пишем вот так app.post("/signin", signin.handleSignin(pgDB, bcrypt));
+// то в модуле мы пишем вот так const handleSignin = (pgDB, bcrypt) => (req, res) => {}
+// откуда тогда берутся req и res? они автоматически передаются в функцию при вызове app.post("/signin", signin.handleSignin(pgDB, bcrypt)(req, res)); и передавать их явно не нужно, да! это немного сбивает с толку, можете использовать прошлую запись
+// app.post("/signin", (req, res) => signin.handleSignin(req, res, pgDB, bcrypt));
+// и в модуле const handleSignin = (req, res, pgDB, bcrypt) => {}
 
-app.post("/register", (req, res) => register.handleRegister(req, res, pgDB, bcrypt));
+app.post("/signin", signin.handleSignin(pgDB, bcrypt));
 
-app.get("/profile/:id", (req, res) => profile.handleProfileGet(req, res, pgDB));
+app.post("/register", register.handleRegister(pgDB, bcrypt));
 
-app.put("/image", (req, res) => image.handleImage(req, res, pgDB));
+app.get("/profile/:id", profile.handleProfileGet(pgDB));
+
+app.put("/image", image.handleImage(pgDB));
 
 app.use((req, res, next) => {
   res.status(404).send("Sorry can't find that!");

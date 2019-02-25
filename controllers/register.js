@@ -1,4 +1,4 @@
-const handleRegister = (req, res, pgDB, bcrypt) => {
+const handleRegister = (pgDB, bcrypt) => (req, res) => {
   bcrypt.hash(req.body.password, null, null, (err, hash) => {
     if (err) return console.log(err);
     // console.log(hash);

@@ -1,4 +1,4 @@
-const handleImage = (req, res, pgDB) => {
+const handleImage = (pgDB) => (req, res) => {
   pgDB("users")
     .where("id", "=", req.body.id)
     .increment("entries", 1)
