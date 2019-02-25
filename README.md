@@ -63,3 +63,5 @@ https://www.npmjs.com/package/sequelize
 [.update()](https://knexjs.org/#Builder-update)
 
 [.increment()](https://knexjs.org/#Builder-increment)
+
+[.transaction()](https://knexjs.org/#Transactions)

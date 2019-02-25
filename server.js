@@ -69,21 +69,30 @@ app.post("/register", (req, res) => {
     if (err) return console.log(err);
     // console.log(hash);
 
-    pgDB("users")
-      .returning("*")
-      .insert({
-        name: req.body.name,
-        email: req.body.email,
-        joined: new Date()
-        // id: "125", id у нас в таблице по-умолчанию автоинкремент
-        // hash: hash, hash(пароль) мы будем хранить в другой таблице login
-        // entries: 0, при создании нового юзера в таблице по-умолчанию создаётся это поле с 0
+    // вставляем email и hash в таблицу login, возвращаем email, дальше вставляем name, email, joined в таблицу users, на клиент отправляем возвращающийся объект юзера, дальше завершаем транзакцию .then(trx.commit) и .catch(trx.rollback)
+    pgDB
+      .transaction((trx) => {
+        trx
+          .insert({
+            email: req.body.email,
+            hash: hash
+          })
+          .into("login")
+          .returning("email")
+          .then((loginEmail) => {
+            return trx("users")
+              .returning("*")
+              .insert({
+                name: req.body.name,
+                email: loginEmail[0],
+                joined: new Date()
+              })
+              .then((response) => res.json(response[0]));
+          })
+          .then(trx.commit)
+          .catch(trx.rollback);
       })
-      // .then((response) => console.log(response)); // возвращается массив с только что созданным юзером, один объект [{id: 1, name: 'apple', email: 'apple@gmail.com', entries: '0', joined: 2019-02-24T22:40:39.234Z }]
-      // .then(console.log); // тоже самое
-      .then((response) => res.json(response[0])) // отправляем на клиент нашего юзера
-      // .catch((err) => res.status(400).json(err)); // не стоит отправлять на клиент err, т.к. там много служебной информации которая может повлиять на безопасность
-      .catch(() => res.status(400).json("Unable to register.")); // просто отправляем текст "регистрация не удалась"
+      .catch(() => res.status(400).json("Unable to register."));
   });
 });
 
