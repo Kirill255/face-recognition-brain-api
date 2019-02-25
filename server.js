@@ -52,16 +52,24 @@ app.get("/", (req, res, next) => {
 });
 
 app.post("/signin", (req, res, next) => {
-  let found = false;
-  database.users.forEach((user) => {
-    if (req.body.email === user.email && bcrypt.compareSync(req.body.password, user.hash)) {
-      found = true;
-      return res.json(user);
-    }
-  });
-  if (!found) {
-    res.status(400).json("access denied");
-  }
+  pgDB
+    .select("email", "hash")
+    .from("login")
+    .where("email", "=", req.body.email)
+    .then((data) => {
+      const isValid = bcrypt.compareSync(req.body.password, data[0].hash);
+      if (isValid) {
+        return pgDB
+          .select("*")
+          .from("users")
+          .where("email", "=", req.body.email)
+          .then((user) => res.json(user[0]))
+          .catch(() => res.status(400).json("Unable to get user"));
+      } else {
+        res.status(400).json("Wrong credentials");
+      }
+    })
+    .catch(() => res.status(400).json("Wrong credentials"));
 });
 
 app.post("/register", (req, res) => {
