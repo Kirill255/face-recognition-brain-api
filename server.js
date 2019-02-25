@@ -45,6 +45,8 @@ app.get("/profile/:id", profile.handleProfileGet(pgDB));
 
 app.put("/image", image.handleImage(pgDB));
 
+app.post("/imageurl", image.handleApiCall);
+
 app.use((req, res, next) => {
   res.status(404).send("Sorry can't find that!");
 });
