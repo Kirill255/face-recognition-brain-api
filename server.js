@@ -15,40 +15,15 @@ const pgDB = knex({
   }
 });
 
-// это временно для отладки, при старте в консоль выводятся все юзеры
-pgDB
-  .select("*")
-  .from("users")
-  .then((data) => console.log(data));
-
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// это нам больше не нужно, но пока оставим для того что бы другие эндпоинты не сломались
-const database = {
-  users: [
-    {
-      id: "123",
-      name: "John",
-      email: "john@gmail.com",
-      hash: "$2a$10$l.e5HD/7m0OKfrZz8KC0g.I0yczdD.prl5mMsGEKM8F5BWEHrxGIS", // "password"
-      entries: 0,
-      joined: new Date()
-    },
-    {
-      id: "124",
-      name: "Sally",
-      email: "sally@gmail.com",
-      hash: "$2a$10$si2Ha9zDthrgOLotYR7VQeGb1kMgDsLbBqu6ZmOG.I2brvfm4zT0O", // "password1"
-      entries: 0,
-      joined: new Date()
-    }
-  ]
-};
-
 app.get("/", (req, res, next) => {
-  res.json(database.users);
+  pgDB
+    .select("*")
+    .from("users")
+    .then((users) => res.json(users));
 });
 
 app.post("/signin", (req, res, next) => {
