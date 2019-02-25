@@ -3,11 +3,29 @@ const cors = require("cors");
 const express = require("express");
 const app = express();
 const port = 3001;
+const knex = require("knex");
+
+const pgDB = knex({
+  client: "pg",
+  connection: {
+    host: "127.0.0.1",
+    user: "postgres",
+    password: "",
+    database: "smart-brain"
+  }
+});
+
+// это временно для отладки, при старте в консоль выводятся все юзеры
+pgDB
+  .select("*")
+  .from("users")
+  .then((data) => console.log(data));
 
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// это нам больше не нужно, но пока оставим для того что бы другие эндпоинты не сломались
 const database = {
   users: [
     {
@@ -51,15 +69,21 @@ app.post("/register", (req, res) => {
     if (err) return console.log(err);
     // console.log(hash);
 
-    database.users.push({
-      id: "125",
-      name: req.body.name,
-      email: req.body.email,
-      hash: hash,
-      entries: 0,
-      joined: new Date()
-    });
-    res.json(database.users[database.users.length - 1]);
+    pgDB("users")
+      .returning("*")
+      .insert({
+        name: req.body.name,
+        email: req.body.email,
+        joined: new Date()
+        // id: "125", id у нас в таблице по-умолчанию автоинкремент
+        // hash: hash, hash(пароль) мы будем хранить в другой таблице login
+        // entries: 0, при создании нового юзера в таблице по-умолчанию создаётся это поле с 0
+      })
+      // .then((response) => console.log(response)); // возвращается массив с только что созданным юзером, один объект [{id: 1, name: 'apple', email: 'apple@gmail.com', entries: '0', joined: 2019-02-24T22:40:39.234Z }]
+      // .then(console.log); // тоже самое
+      .then((response) => res.json(response[0])) // отправляем на клиент нашего юзера
+      // .catch((err) => res.status(400).json(err)); // не стоит отправлять на клиент err, т.к. там много служебной информации которая может повлиять на безопасность
+      .catch(() => res.status(400).json("Unable to register.")); // просто отправляем текст "регистрация не удалась"
   });
 });
 
