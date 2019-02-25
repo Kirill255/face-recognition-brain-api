@@ -117,17 +117,12 @@ app.get("/profile/:id", (req, res) => {
 });
 
 app.put("/image", (req, res) => {
-  let found = false;
-  database.users.forEach((user) => {
-    if (req.body.id === user.id) {
-      found = true;
-      user.entries++;
-      return res.json(user.entries);
-    }
-  });
-  if (!found) {
-    res.status(400).json("no such user");
-  }
+  pgDB("users")
+    .where("id", "=", req.body.id)
+    .increment("entries", 1)
+    .returning("entries")
+    .then((entries) => res.json(entries[0]))
+    .catch(() => res.status(400).json("Unable to get entries."));
 });
 
 app.use((req, res, next) => {

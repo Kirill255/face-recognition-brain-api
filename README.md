@@ -59,3 +59,7 @@ https://www.npmjs.com/package/sequelize
 [.returning()](https://knexjs.org/#Builder-returning)
 
 [.where()](https://knexjs.org/#Builder-where)
+
+[.update()](https://knexjs.org/#Builder-update)
+
+[.increment()](https://knexjs.org/#Builder-increment)
