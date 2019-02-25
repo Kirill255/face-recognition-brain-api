@@ -1,6 +1,8 @@
 const handleProfileGet = (pgDB) => (req, res) => {
+  const { id } = req.params;
+
   pgDB("users")
-    .where("id", req.params.id)
+    .where("id", id)
     .then((user) => {
       // если юзера нет, то вернётся просто пустой массив и 200, тоесть нет ошибки, мы не сможем поймать это в catch
       if (user.length) {

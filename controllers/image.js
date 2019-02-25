@@ -1,6 +1,8 @@
 const handleImage = (pgDB) => (req, res) => {
+  const { id } = req.body;
+
   pgDB("users")
-    .where("id", "=", req.body.id)
+    .where("id", "=", id)
     .increment("entries", 1)
     .returning("entries")
     .then((entries) => res.json(entries[0]))

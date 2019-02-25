@@ -1,5 +1,11 @@
 const handleRegister = (pgDB, bcrypt) => (req, res) => {
-  bcrypt.hash(req.body.password, null, null, (err, hash) => {
+  const { name, email, password } = req.body;
+
+  if (!name || !email || !password) {
+    return res.status(400).json("Incorrect form submission");
+  }
+
+  bcrypt.hash(password, null, null, (err, hash) => {
     if (err) return console.log(err);
     // console.log(hash);
 
@@ -8,7 +14,7 @@ const handleRegister = (pgDB, bcrypt) => (req, res) => {
       .transaction((trx) => {
         trx
           .insert({
-            email: req.body.email,
+            email: email,
             hash: hash
           })
           .into("login")
@@ -17,7 +23,7 @@ const handleRegister = (pgDB, bcrypt) => (req, res) => {
             return trx("users")
               .returning("*")
               .insert({
-                name: req.body.name,
+                name: name,
                 email: loginEmail[0],
                 joined: new Date()
               })
