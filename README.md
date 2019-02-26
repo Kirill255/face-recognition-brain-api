@@ -65,3 +65,77 @@ https://www.npmjs.com/package/sequelize
 [.increment()](https://knexjs.org/#Builder-increment)
 
 [.transaction()](https://knexjs.org/#Transactions)
+
+## Deploy to Heroku
+
+1. Create app `heroku create your_app_name`
+
+2. Create db `heroku addons:create heroku-postgresql:hobby-dev`
+
+3. Create tables in db `heroku pg:psql` https://devcenter.heroku.com/articles/heroku-postgresql#pg-psql
+
+```sql
+CREATE TABLE users(
+id serial PRIMARY KEY,
+name VARCHAR(100),
+email text UNIQUE NOT NULL,
+entries BIGINT DEFAULT 0,
+joined TIMESTAMP NOT NULL
+);
+```
+
+```sql
+CREATE TABLE login(
+id serial PRIMARY KEY,
+hash VARCHAR(100) NOT NULL,
+email text UNIQUE NOT NULL
+);
+```
+
+psql commands:
+
+https://www.postgresql.org/docs/9.4/app-psql.html
+
+`\d` - list of all visible tables
+
+`\q` - quit
+
+4. Connecting in Node.js
+
+https://devcenter.heroku.com/articles/heroku-postgresql#connecting-in-node-js
+
+before:
+
+```js
+const pgDB = knex({
+  client: "pg",
+  connection: {
+    host: "127.0.0.1",
+    user: "postgres",
+    password: "",
+    database: "smart-brain"
+  }
+});
+```
+
+after:
+
+```js
+const pgDB = knex({
+  client: "pg",
+  connection: {
+    connectionString: process.env.DATABASE_URL,
+    ssl: true
+  }
+});
+```
+
+5. Change port number `const PORT = process.env.PORT || 5000;`
+
+6. Deploy `git add .` `git commit -m "changes for deploy to heroku"` `git push heroku master`
+
+7. Other
+
+`heroku info` - инфо
+
+`heroku logs --tail` - show logs

@@ -2,7 +2,7 @@ const bcrypt = require("bcrypt-nodejs");
 const cors = require("cors");
 const express = require("express");
 const app = express();
-const port = 3001;
+const PORT = process.env.PORT || 5000;
 const knex = require("knex");
 
 const register = require("./controllers/register");
@@ -13,10 +13,8 @@ const image = require("./controllers/image");
 const pgDB = knex({
   client: "pg",
   connection: {
-    host: "127.0.0.1",
-    user: "postgres",
-    password: "",
-    database: "smart-brain"
+    connectionString: process.env.DATABASE_URL,
+    ssl: true
   }
 });
 
@@ -56,4 +54,4 @@ app.use((err, req, res, next) => {
   res.status(500).send("Something broke!");
 });
 
-app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+app.listen(PORT, () => console.log(`Example app listening on port ${PORT}!`));
